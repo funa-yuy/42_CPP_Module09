@@ -21,7 +21,8 @@ class BitcoinExchange {
 
 		bool	loadDatabase(const char* databaseFile);
 		bool	execute(char* input);
-		bool	validInputLine(const std::string& line);
+		bool	validInputLine(const std::string& line, std::string& outDate, double& outValue);
+		double	getExchangeRate(const std::string& date, double value) const;
 
 	private:
 		std::map<std::string, double>	_database;

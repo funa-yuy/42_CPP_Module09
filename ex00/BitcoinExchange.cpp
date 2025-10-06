@@ -174,10 +174,7 @@ static bool isValidDateRange(const std::map<std::string, double>& db, const std:
 	return (true);
 }
 
-bool	BitcoinExchange::validInputLine(const std::string& line) {
-	std::string outDate;
-	double outValue;
-
+bool	BitcoinExchange::validInputLine(const std::string& line, std::string& outDate, double& outValue) {
 	if (!isValidSyntax(line, outDate, outValue))
 	{
 		std::cerr << "Error: bad input => " <<  line << std::endl;
@@ -190,7 +187,7 @@ bool	BitcoinExchange::validInputLine(const std::string& line) {
 	}
 	if (outValue < 0.0)
 	{
-		std::cerr << "Error: not a positive number" << std::endl;
+		std::cerr << "Error: not a positive number." << std::endl;
 		return(false);
 	}
 	if (outValue > INT_MAX)
@@ -201,11 +198,19 @@ bool	BitcoinExchange::validInputLine(const std::string& line) {
 	return (true);
 }
 
-// double getExchangeRate(const std::string& line) {
-
-// 	data = line.dateから一番値が近いdatabaseの日付行
-// 	return (line.value * data.prices);
-// }
+double BitcoinExchange::getExchangeRate(const std::string& date, double value) const {
+	if (_database.empty())
+		return (0.0);
+	std::map<std::string,double>::const_iterator it = _database.lower_bound(date);
+	if (it == _database.end()) {
+		--it;
+	} else if (it->first != date) {
+		if (it == _database.begin())
+			return (0.0);
+		--it;
+	}
+	return (value * it->second);
+}
 
 bool	BitcoinExchange::execute(char* input) {
 	std::ifstream ifs(input);
@@ -222,10 +227,13 @@ bool	BitcoinExchange::execute(char* input) {
 		if (str.empty())
 			continue ;
 
-		if (!validInputLine(str))
+		std::string outDate;
+		double outValue;
+		if (!validInputLine(str, outDate, outValue))
 			continue ;
-		// double result = getExchangeRate(line);
-		// std::cout << line.date << " => " << line.value << " = " << result << std::endl;
+
+		double result = getExchangeRate(outDate, outValue);
+		std::cout << outDate << " => " << outValue << " = " << result << std::endl;
 	}
 	return (true);
 }
