@@ -34,4 +34,6 @@
 #original
 *.pdf
 **/.DS_Store
-*/bin
+.vscode/
+ex00/input.txt
+cpp_09/
