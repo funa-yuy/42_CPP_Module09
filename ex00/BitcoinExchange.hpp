@@ -20,7 +20,8 @@ class BitcoinExchange {
 		~BitcoinExchange();
 
 		bool	loadDatabase(const char* databaseFile);
-		// bool	execute(char* input);
+		bool	execute(char* input);
+		bool	validInputLine(const std::string& line);
 
 	private:
 		std::map<std::string, double>	_database;

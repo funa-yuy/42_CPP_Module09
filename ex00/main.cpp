@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
 
 	if (!b.loadDatabase("./data.csv"))//./data.csvを読み込む
 		return (EXIT_FAILURE);
-	// if (!b.execute(argv[1]))//計算を実行する
-	// 	return (EXIT_FAILURE);
+	if (!b.execute(argv[1]))//計算を実行する
+		return (EXIT_FAILURE);
 
 	return (EXIT_SUCCESS);
 }

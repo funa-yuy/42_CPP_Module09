@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <climits>
 #include <cctype>
 #include <cstdlib>
 
@@ -70,19 +71,17 @@ static bool isValidDate(const std::string& date)
 	return (true);
 }
 
-// レートの取得（欠損・不正・負値は失敗）
+// レートの取得（変換のみ行う。空/非数/末尾ゴミで false）
 static bool parseRate(const std::string& valueStr, double& out)
 {
 	if (valueStr.size() == 0)
 		return (false);
 	std::stringstream ss(valueStr);
-	double v = 0.0;
+	double v;
 	if (!(ss >> v))
 		return (false);
 	ss >> std::ws;
 	if (!ss.eof())
-		return(false);
-	if (v < 0.0)
 		return (false);
 	out = v;
 	return (true);
@@ -123,12 +122,14 @@ bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 
 		date = trimIsspace(date);
 		valueStr = trimIsspace(valueStr);
+		if (date.empty() || valueStr.empty())
+			return (false);
 
 		if (!isValidDate(date))
 			continue;
 
 		double rate;
-		if (!parseRate(valueStr, rate))
+		if (!parseRate(valueStr, rate) || rate < 0.0)
 			continue;
 
 		_database[date] = rate;
@@ -136,18 +137,69 @@ bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 	return (true);
 }
 
-// bool	validateDate(char line) {
-// 	//todo: inputファイルの内容が正しいか確認
-// 	if (構文がおかしい)
-// 		return ("Error: bad input => " + line);
-// 	if (日付がデーターベース範囲外)
-// 		return ("Error: Date is out of database range.");
-// 	if (valueが負の値)
-// 		return ("Error: not a positive number")
-// 	if (value > INT_MAX) //valueがintの範囲外
-// 		return ("Error: too large a number.");
-// 	return (true);
-// }
+static bool isValidSyntax(const std::string& line, std::string& outDate, double& outValue)
+{
+	std::string::size_type bar = line.find('|');
+	if (bar == std::string::npos)
+		return (false);
+
+	std::string left = trimIsspace(line.substr(0, bar));
+	std::string right = trimIsspace(line.substr(bar + 1));
+	if (left.size() == 0 || right.size() == 0)
+		return (false);
+
+	if (!isValidDate(left))
+		return (false);
+
+	double v;
+	if (!parseRate(right, v))
+		return (false);
+
+	outDate = left;
+	outValue = v;
+	return (true);
+}
+
+// _database に日付が妥当範囲内かを検証（存在チェック/下限存在チェック）。
+static bool isValidDateRange(const std::map<std::string, double>& db, const std::string& requestedDate)
+{
+	if (db.empty())
+		return false;
+
+	std::map<std::string, double>::const_iterator it = db.lower_bound(requestedDate);
+	if (it != db.end() && it->first == requestedDate)
+		return (true);
+	if (it == db.begin())
+		return false;
+	return (true);
+}
+
+bool	BitcoinExchange::validInputLine(const std::string& line) {
+	std::string outDate;
+	double outValue;
+
+	if (!isValidSyntax(line, outDate, outValue))
+	{
+		std::cerr << "Error: bad input => " <<  line << std::endl;
+		return(false);
+	}
+	if (!isValidDateRange(_database, outDate))
+	{
+		std::cerr << "Error: Date is out of database range." << std::endl;
+		return(false);
+	}
+	if (outValue < 0.0)
+	{
+		std::cerr << "Error: not a positive number" << std::endl;
+		return(false);
+	}
+	if (outValue > INT_MAX)
+	{
+		std::cerr << "Error: too large a number." << std::endl;
+		return(false);
+	}
+	return (true);
+}
 
 // double getExchangeRate(const std::string& line) {
 
@@ -155,18 +207,25 @@ bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 // 	return (line.value * data.prices);
 // }
 
-// bool	BitcoinExchange::execute(char* input) {
+bool	BitcoinExchange::execute(char* input) {
+	std::ifstream ifs(input);
+	if (!ifs.is_open())
+		return (false);
 
-// 	//todo: inputfileの内容を一気に格納する
+	std::string line;
+	if (!std::getline(ifs, line))//1行目は確定でスキップ
+		return (false);
 
+	while (std::getline(ifs, line))
+	{
+		std::string str = trimIsspace(line);
+		if (str.empty())
+			continue ;
 
-// 	//todo: １行ずつ計算して、結果出力
-// 	while (line = 1行)
-// 	{
-// 		if (!validateDate(line))
-// 			return (false);
-// 		double result = getExchangeRate(line);
-// 		std::cout << line.date << " => " << line.value << " = " << result << std::endl;
-// 	}
-// 	return (true);
-// }
+		if (!validInputLine(str))
+			continue ;
+		// double result = getExchangeRate(line);
+		// std::cout << line.date << " => " << line.value << " = " << result << std::endl;
+	}
+	return (true);
+}
