@@ -5,9 +5,10 @@
 // include
 // ------------------------------------------------
 
+#include <vector>
+#include <stack>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <algorithm>
 
 // ------------------------------------------------

@@ -31,7 +31,6 @@ RPN::~RPN() {}
 
 // ↑↑↑ Orthodox Canonical Form --------------------------------------
 
-
 void	RPN::calc_RPN(int size, char*	data) {
 	std::stack<int> st;
 	for (size_t i = 0; i < size; i++) {
@@ -44,13 +43,13 @@ void	RPN::calc_RPN(int size, char*	data) {
 			st.pop();
 
 			if (data[i] == '+')
-				st.push(a+ b);
+				st.push(a + b);
 			else if (data[i] == '-')
-				st.push(a- b);
+				st.push(a - b);
 			else if (data[i] == '/')
-				st.push(a/ b);
+				st.push(a / b);
 			else if (data[i] == '*')
-				st.push(a* b);
+				st.push(a * b);
 		}
 		else {
 			std::cerr << "Error" << std::endl;

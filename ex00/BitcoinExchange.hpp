@@ -5,10 +5,8 @@
 // include
 // ------------------------------------------------
 
-#include <iostream>
+#include <map>
 #include <string>
-#include <vector>
-#include <algorithm>
 
 // ------------------------------------------------
 // class
@@ -21,10 +19,11 @@ class BitcoinExchange {
 		BitcoinExchange(const BitcoinExchange& copy);
 		~BitcoinExchange();
 
-		bool	loadDatabase(char* databaseFile);
-		bool	execute(char* input);
+		bool	loadDatabase(const char* databaseFile);
+		// bool	execute(char* input);
+
 	private:
-		std::vector<std::string, double>	_database;
+		std::map<std::string, double>	_database;
 };
 
 // ------------------------------------------------

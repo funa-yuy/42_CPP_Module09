@@ -35,5 +35,8 @@
 *.pdf
 **/.DS_Store
 .vscode/
+ex00/data.csv
 ex00/input.txt
-cpp_09/
+ex00/btc
+ex01/RPN
+ex02/PmergeMe
