@@ -104,7 +104,10 @@ static void splitFirstComma(const std::string& line, std::string& date, std::str
 bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 	std::ifstream ifs(databaseFile);
 	if (!ifs.is_open())
+	{
+		std::cout << "Error: could not open data file." << std::endl;
 		return (false);
+	}
 
 	std::string line;
 	if (!std::getline(ifs, line))//1行目は確定でスキップ
@@ -160,39 +163,39 @@ static bool isValidSyntax(const std::string& line, std::string& outDate, double&
 	return (true);
 }
 
-// _database に日付が妥当範囲内かを検証（存在チェック/下限存在チェック）。
+// 日付が妥当範囲内かを検証（存在チェック/下限存在チェック）。
 static bool isValidDateRange(const std::map<std::string, double>& db, const std::string& requestedDate)
 {
 	if (db.empty())
-		return false;
+		return (false);
 
 	std::map<std::string, double>::const_iterator it = db.lower_bound(requestedDate);
 	if (it != db.end() && it->first == requestedDate)
 		return (true);
 	if (it == db.begin())
-		return false;
+		return (false);
 	return (true);
 }
 
 bool	BitcoinExchange::validInputLine(const std::string& line, std::string& outDate, double& outValue) {
 	if (!isValidSyntax(line, outDate, outValue))
 	{
-		std::cerr << "Error: bad input => " <<  line << std::endl;
+		std::cout << "Error: bad input => " <<  line << std::endl;
 		return(false);
 	}
 	if (!isValidDateRange(_database, outDate))
 	{
-		std::cerr << "Error: Date is out of database range." << std::endl;
+		std::cout << "Error: Date is out of database range." << std::endl;
 		return(false);
 	}
 	if (outValue < 0.0)
 	{
-		std::cerr << "Error: not a positive number." << std::endl;
+		std::cout << "Error: not a positive number." << std::endl;
 		return(false);
 	}
 	if (outValue > INT_MAX)
 	{
-		std::cerr << "Error: too large a number." << std::endl;
+		std::cout << "Error: too large a number." << std::endl;
 		return(false);
 	}
 	return (true);
@@ -215,7 +218,10 @@ double BitcoinExchange::getExchangeRate(const std::string& date, double value) c
 bool	BitcoinExchange::execute(char* input) {
 	std::ifstream ifs(input);
 	if (!ifs.is_open())
+	 {
+		std::cout << "Error: could not open file." << std::endl;
 		return (false);
+	 }
 
 	std::string line;
 	if (!std::getline(ifs, line))//1行目は確定でスキップ
