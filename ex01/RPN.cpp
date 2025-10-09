@@ -19,20 +19,20 @@ bool	RPN::execute(const char*	data) {
 	std::vector<std::string> tokens = splitBySpace(std::string(data));
 
 	for (size_t i = 0; i < tokens.size(); i++) {
-		std::cout << "[DEBUG]" << tokens[i] << std::endl;
 		if (tokens[i].size() != 1) {
 			std::cerr << "Error" << std::endl;
 			return (false);
 		}
+		char target = tokens[i][0];
 
 		// 1文字の数字（0-9）なら push
-		if (tokens[i][0] >= '0' && tokens[i][0] <= '9') {
-			st.push(tokens[i][0] - '0');
+		if (target >= '0' && target <= '9') {
+			st.push(target - '0');
 			continue ;
 		}
 
 		// 演算子なら pop 2回して計算
-		if (tokens[i] == "+" || tokens[i] == "-" || tokens[i] == "/" || tokens[i] == "*") {
+		if (target == '+' || target == '-' || target == '/' || target == '*') {
 			if (st.size() < 2) {
 				std::cerr << "Error" << std::endl;
 				return (false);
@@ -42,24 +42,30 @@ bool	RPN::execute(const char*	data) {
 			int a = st.top();
 			st.pop();
 
-			if (tokens[i] == "+")
-				st.push(a + b);
-			else if (tokens[i] == "-")
-				st.push(a - b);
-			else if (tokens[i] == "/") {
-				if (b == 0) {
-					std::cerr << "Error" << std::endl;
-					return (false);
-				}
-				st.push(a / b);
+			switch (target) {
+				case '+':
+					st.push(a + b);
+					break;
+				case '-':
+					st.push(a - b);
+					break;
+				case '/':
+					if (b == 0) {
+						std::cerr << "Error" << std::endl;
+						return (false);
+					}
+					st.push(a / b);
+					break;
+				case '*':
+					st.push(a * b);
+					break;
 			}
-			else if (tokens[i] == "*")
-				st.push(a * b);
+			continue;
 		}
-		else {
-			std::cerr << "Error" << std::endl;
-			return (false);
-		}
+
+		// 不正トークン
+		std::cerr << "Error" << std::endl;
+		return (false);
 	}
 	std::cout << st.top() << std::endl;
 	return(true);
