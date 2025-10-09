@@ -1,59 +1,66 @@
 #include"RPN.hpp"
+#include <stack>
+#include <sstream>
+#include <vector>
 
-/*
- * デフォルトコンストラクタ
- */
-RPN::RPN() {}
+static std::vector<std::string> splitBySpace(const std::string& s)
+{
+	std::vector<std::string> tokens;
+	std::istringstream iss(s);
+	std::string token;
 
-/*
- * コピーコンストラクタ
- */
-RPN::RPN(const RPN& copy) {
-	_st = copy._st;
+	while (iss >> token)
+		tokens.push_back(token);
+	return tokens;
 }
 
-/*
- * コピー代入演算子 (A copy assignment operator overload.)
- */
-RPN &RPN::operator=(const RPN& copy) {
-	if (this != &copy)
-	{
-		_st = copy._st;
-	}
-	return (*this);
-}
-
-/*
- * デストラクタ
- */
-RPN::~RPN() {}
-
-
-// ↑↑↑ Orthodox Canonical Form --------------------------------------
-
-void	RPN::calc_RPN(int size, char*	data) {
+bool	RPN::execute(const char*	data) {
 	std::stack<int> st;
-	for (size_t i = 0; i < size; i++) {
-		if ('0' <= data[i] && data[i] >= '9')
-			st.push(data[i] - '0');
-		if (data[i] == '+') {
-			int	a = st.top();
+	std::vector<std::string> tokens = splitBySpace(std::string(data));
+
+	for (size_t i = 0; i < tokens.size(); i++) {
+		std::cout << "[DEBUG]" << tokens[i] << std::endl;
+		if (tokens[i].size() != 1) {
+			std::cerr << "Error" << std::endl;
+			return (false);
+		}
+
+		// 1文字の数字（0-9）なら push
+		if (tokens[i][0] >= '0' && tokens[i][0] <= '9') {
+			st.push(tokens[i][0] - '0');
+			continue ;
+		}
+
+		// 演算子なら pop 2回して計算
+		if (tokens[i] == "+" || tokens[i] == "-" || tokens[i] == "/" || tokens[i] == "*") {
+			if (st.size() < 2) {
+				std::cerr << "Error" << std::endl;
+				return (false);
+			}
+			int b = st.top();
 			st.pop();
-			int	b = st.top();
+			int a = st.top();
 			st.pop();
 
-			if (data[i] == '+')
+			if (tokens[i] == "+")
 				st.push(a + b);
-			else if (data[i] == '-')
+			else if (tokens[i] == "-")
 				st.push(a - b);
-			else if (data[i] == '/')
+			else if (tokens[i] == "/") {
+				if (b == 0) {
+					std::cerr << "Error" << std::endl;
+					return (false);
+				}
 				st.push(a / b);
-			else if (data[i] == '*')
+			}
+			else if (tokens[i] == "*")
 				st.push(a * b);
 		}
 		else {
 			std::cerr << "Error" << std::endl;
-			exit (EXIT_FAILURE);
+			return (false);
 		}
 	}
+	std::cout << st.top() << std::endl;
+	return(true);
 }
