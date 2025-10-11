@@ -10,6 +10,7 @@
 #include <climits>
 #include <string>
 #include <vector>
+#include <iostream>
 
 // ------------------------------------------------
 // class
@@ -47,8 +48,10 @@ Container PmergeMe::loadInputToContainer(char** input) const
 	for (unsigned int i = 0; i < _size; ++i)
 	{
 		int num;
-		if (!validPositiveInt(std::string(input[i]), num))
-			return Container();
+		if (!validPositiveInt(std::string(input[i]), num)) {
+			std::cerr << "Error: 不正な値が含まれています。" << std::endl;
+			std::exit(EXIT_FAILURE);
+		}
 		out.push_back(static_cast<typename Container::value_type>(num));
 	}
 	return (out);
