@@ -81,8 +81,8 @@ static int jacobsthal(int n) {
 	if (n == 1)
 		return (1);
 
-	int prev2 = 0;  // J(k-2)
-	int prev1 = 1;  // J(k-1)
+	int prev2 = 0;
+	int prev1 = 1;
 	int curr;
 
 	for (int i = 2; i <= n; ++i) {
@@ -91,6 +91,41 @@ static int jacobsthal(int n) {
 		prev1 = curr;
 	}
 	return (curr);
+}
+
+// Jacobsthal 数列の順序で losers を chain に挿入
+static void insertLosers(
+	std::vector<unsigned int>& chain,
+	const std::vector<std::pair<unsigned int, unsigned int> >& losers)
+{
+	int start = 0;
+	int k = 1;
+	while (start < (int)losers.size()) {
+		int end = jacobsthal(k);
+		if (end > (int)losers.size())
+			end = (int)losers.size();
+
+		// [start, end) の範囲を降順で挿入
+		for (int i = end - 1; i >= start; --i) {
+			unsigned int winner = losers[i].first;
+			unsigned int loser = losers[i].second;
+
+			std::cout << "[DEBUG INSERT] " << k << ": end=" << end
+						<< ", target=" << i << ", (loser=" << loser
+						<< " (winner=" << winner << ")\n";
+
+			// winner の位置を探す
+			std::vector<unsigned int>::iterator winnerIt =
+				std::lower_bound(chain.begin(), chain.end(), winner);
+
+			// [begin, winnerIt) の範囲で loser を二分挿入
+			std::vector<unsigned int>::iterator ins =
+				std::lower_bound(chain.begin(), winnerIt, loser);
+			chain.insert(ins, loser);
+		}
+		start = end;
+		++k;
+	}
 }
 
 // void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const
@@ -160,32 +195,7 @@ static int jacobsthal(int n) {
 // 	}
 // 	std::cout << "\n";
 
-// 	// ヤコブスタール数列を使ってlosersを挿入
-// 	int start = 0;
-// 	int k = 1;
-
-// 	while (start < (int)losers.size()) {
-// 		int end = jacobsthal(k);
-// 		if (end > (int)losers.size())
-// 			end = (int)losers.size();
-
-// 		for (int i = end - 1; i >= start; --i) {
-// 			unsigned int winner = losers[i].first;
-// 			unsigned int loser = losers[i].second;
-
-// 			std::cout << "[DEBUG INSERT] " << k << ": end=" << end << ", target=" << i << ", (loser=" << loser << " (winner=" << winner << ")\n";
-
-// 			// winner の位置を探す
-// 			std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
-
-// 			// [begin, thIt) の範囲で loser を二分挿入
-// 			std::vector<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
-// 			chain.insert(ins, loser);
-
-// 		}
-// 		start = end;
-// 		k++;
-// 	}
+// 	insertLosers(chain, losers);
 
 // 	list.swap(chain);
 // }
@@ -269,31 +279,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel)
 		std::cout << " (threshold: " << losers[i].first << ", loser: " << losers[i].second << ")";
 	std::cout << "\n";
 
-	// ヤコブスタール数列を使ってlosersを挿入
-	int start = 0;
-	int k = 1;
-	while (start < (int)losers.size()) {
-		int end = jacobsthal(k);
-		if (end > (int)losers.size())
-			end = (int)losers.size();
-
-		for (int i = end - 1; i >= start; --i) {
-			unsigned int winner = losers[i].first;
-			unsigned int loser = losers[i].second;
-
-			std::cout << "[DEBUG INSERT] " << k << ": end=" << end << ", target=" << i << ", (loser=" << loser << " (winner=" << winner << ")\n";
-
-			// winner の位置を探す
-			std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
-
-			// [begin, thIt) の範囲で loser を二分挿入
-			std::vector<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
-			chain.insert(ins, loser);
-
-		}
-		start = end;
-		k++;
-	}
+	insertLosers(chain, losers);
 
 	if (hasExtra)
 		binaryInsert(chain, extra);
