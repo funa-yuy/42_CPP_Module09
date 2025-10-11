@@ -26,7 +26,7 @@ class PmergeMe {
 
 		bool	validPositiveInt(const std::string& s, int& out) const;
 		bool	execute_1(char**	input);
-		void mergeInsertSort(std::vector<unsigned int>& list) const;
+		void mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const;
 		void binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const;
 
 		template <typename Container>

@@ -93,7 +93,7 @@ static int jacobsthal(int n) {
 	return (curr);
 }
 
-void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
+void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const
 {
 	std::vector<unsigned int> chain;
 	std::vector<std::pair<unsigned int, unsigned int> > losers;
@@ -103,25 +103,16 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 		return ;
 
 	if (n % 2 == 1) {
-		unsigned int extra = list.back();   // ① 最後の1個を取り出す
+		unsigned int extra = list.back();
 		std::cout << "\n[DEBUG extra]: " << extra << "\n";
 
-		list.pop_back();           // ② A から削除して偶数個にする
-		mergeInsertSort(list);     // ③ 残り（偶数個）を再帰的にソート
-		binaryInsert(list, extra); // ④ ソート済みのAに、最後の要素を二分挿入
+		list.pop_back();
+		mergeInsertSort(list, false);
+		binaryInsert(list, extra);
 		return ;
 	}
 
-	unsigned int	specialLoser;
-	if (list[0] < list[1]) {
-		chain.push_back(list[1]);
-		specialLoser = list[0];
-	} else {
-		chain.push_back(list[0]);
-		specialLoser = list[1];
-	}
-
-	for (size_t i = 2; i + 1 < n; i += 2)
+	for (size_t i = 0; i + 1 < n; i += 2)
 	{
 		unsigned int a = list[i];
 		unsigned int b = list[i + 1];
@@ -136,12 +127,26 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 	}
 
 	//再起的にchainをソート
-	mergeInsertSort(chain);
+	mergeInsertSort(chain, false);
 
 
-	//losersのソート
-	std::cout << "\n[DEBUG specialLoser]: " << specialLoser;
-	chain.insert(chain.begin(), specialLoser);
+	// //losersのソート
+	if (isTopLevel) {
+		// chain[0] とペアを組んでいる loser を探す
+		unsigned int firstWinner = chain[0];
+		for (size_t i = 0; i < losers.size(); ++i) {
+			if (losers[i].first == firstWinner) {
+				// このペアの loser を先頭に挿入
+				unsigned int firstLoser = losers[i].second;
+				std::cout << "\n[DEBUG firstLoser]: " << firstLoser;
+				chain.insert(chain.begin(), firstLoser);
+
+				// この loser は処理済みなので losers から削除
+				losers.erase(losers.begin() + i);
+				break;
+			}
+		}
+	}
 
 	std::cout << "\n[DEBUG chain]:";
 	for (size_t i = 0; i < chain.size(); i++) {
@@ -157,11 +162,9 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 
 	// ヤコブスタール数列を使ってlosersを挿入
 	int start = 0;
-	// int power = 1;
 	int k = 1;
 
 	while (start < (int)losers.size()) {
-		// power *= 2;
 		int end = jacobsthal(k);
 		if (end > (int)losers.size())
 			end = (int)losers.size();
@@ -188,7 +191,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 }
 
 bool	PmergeMe::execute_1(char**	input) {
-	std::cout << "\n[DEBUG INPUT]:";
+	std::cout << "\nBefore:";
 	for (unsigned int i = 0; i < _size; i++) {
 		std::cout << " " << input[i];
 	}
@@ -201,9 +204,9 @@ bool	PmergeMe::execute_1(char**	input) {
 	}
 	std::cout << "\n";
 
-	mergeInsertSort(tokens);
+	mergeInsertSort(tokens, true);
 
-	std::cout << "\n[DEBUG SORT]:";
+	std::cout << "\nAfter:";
 	for (unsigned int i = 0; i < tokens.size(); i++) {
 		std::cout << " " << tokens[i];
 	}
