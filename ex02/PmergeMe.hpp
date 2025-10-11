@@ -23,9 +23,10 @@ class PmergeMe {
 		PmergeMe(const PmergeMe& copy);
 		~PmergeMe();
 
-		bool	validPositiveInt(const std::string& s, int& out);
+		bool	validPositiveInt(const std::string& s, int& out) const;
 		bool	execute_1(char**	input);
-		std::vector<unsigned int> mergeInsertSort(std::vector<unsigned int> a) const;
+		void mergeInsertSort(std::vector<unsigned int>& list) const;
+		void binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const;
 
 		template <typename Container>
 		Container	loadInputToContainer(char** input) const;
@@ -50,7 +51,7 @@ Container PmergeMe::loadInputToContainer(char** input) const
 			return Container();
 		out.push_back(static_cast<typename Container::value_type>(num));
 	}
-	return out;
+	return (out);
 }
 
 #endif
