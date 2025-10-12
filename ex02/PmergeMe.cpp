@@ -5,6 +5,7 @@
 #include <climits>
 #include <utility>
 #include <algorithm>
+#include <sys/time.h>
 
 /*
  * デフォルトコンストラクタ
@@ -288,11 +289,8 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel)
 }
 
 bool	PmergeMe::execute_1(char**	input) {
-	std::cout << "\nBefore:";
-	for (unsigned int i = 0; i < _size; i++) {
-		std::cout << " " << input[i];
-	}
-	std::cout << "\n";
+	struct timeval start, end;
+	gettimeofday(&start, NULL);  // 開始時刻
 
 	std::vector<unsigned int> tokens = loadInputToContainer<std::vector<unsigned int> >(input);
 	std::cout << "\n[DEBUG PARSE]:";
@@ -303,11 +301,22 @@ bool	PmergeMe::execute_1(char**	input) {
 
 	mergeInsertSort(tokens, true);
 
+	gettimeofday(&end, NULL);  // 終了時刻
+
+	// マイクロ秒単位で計算
+	long seconds = end.tv_sec - start.tv_sec;
+	long microseconds = end.tv_usec - start.tv_usec;
+	double elapsed = seconds * 1000000.0 + microseconds;
+
 	std::cout << "\nAfter:";
 	for (unsigned int i = 0; i < tokens.size(); i++) {
 		std::cout << " " << tokens[i];
 	}
-	std::cout << "\n";
+
+	std::cout << "\n要素数: " << tokens.size()
+			<< ", 使用コンテナ: std::vector, 処理にかかった時間: "
+			<< elapsed << " us(マイクロ秒)" << std::endl;
+
 	return(true);
 }
 

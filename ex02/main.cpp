@@ -11,6 +11,12 @@ int main(int argc, char* argv[])
 		return (EXIT_FAILURE);
 	}
 
+	std::cout << "Before:";
+	for (int i = 1; i < argc; ++i) {
+		std::cout << " " << argv[i];
+	}
+	std::cout << "\n";
+
 	PmergeMe p(argc - 1);
 	//1個目のコンテナでのソート
 	if (p.execute_1(&argv[1])) {
