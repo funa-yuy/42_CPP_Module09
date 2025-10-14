@@ -19,11 +19,17 @@ int main(int argc, char* argv[])
 
 	PmergeMe p(argc - 1);
 	//1個目のコンテナでのソート
-	if (p.execute_1(&argv[1])) {
+	if (!p.execute_1(&argv[1])) {
 		return (EXIT_FAILURE);
 	}
 
 	//2個目のコンテナでのソート
-		//todo: 引数が全て整数か確認
+	if (!p.execute_2(&argv[1])) {
+		return (EXIT_FAILURE);
+	}
+
+	p.printResult();
+
+	//ビフォーとアフター出力&計測時間出力
 	return (EXIT_SUCCESS);
 }

@@ -10,6 +10,7 @@
 #include <climits>
 #include <string>
 #include <vector>
+#include <deque>
 #include <iostream>
 
 // ------------------------------------------------
@@ -25,16 +26,30 @@ class PmergeMe {
 		~PmergeMe();
 
 		bool	validPositiveInt(const std::string& s, int& out) const;
+		void	setTimeus(struct timeval start, struct timeval end, double& outTime);
+		void	printResult();
+
 		bool	execute_1(char**	input);
 		void	mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const;
 		void	binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const;
+
+
+		bool	execute_2(char**	input);
+		void	mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) const;
+		void	binaryInsert(std::deque<unsigned int>& arr, unsigned int value) const;
 
 		template <typename Container>
 		Container	loadInputToContainer(char** input) const;
 
 
 	private:
-		unsigned int _size;
+		unsigned int				_size;
+		std::vector<unsigned int>	_vecList;
+		std::deque<unsigned int>	_deqList;
+		double						_vecTimeus;
+		double						_deqTimeus;
+
+
 };
 
 // ------------------------------------------------
