@@ -27,14 +27,14 @@ class PmergeMe {
 
 		bool	executeVecter();
 		std::vector<unsigned int> loadInputToVector(char** input) const;
-		void	mergeInsertSort(std::vector<unsigned int>& list) const;
-		void	binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const;
+		void	mergeInsertSort(std::vector<unsigned int>& list, int& compareCount) const;
+		void	binaryInsert(std::vector<unsigned int>& arr, unsigned int value, int& compareCount) const;
 
 
 		bool	executeDeque();
 		std::deque<unsigned int> loadInputToDeque(char** input) const;
-		void	mergeInsertSort(std::deque<unsigned int>& list) const;
-		void	binaryInsert(std::deque<unsigned int>& arr, unsigned int value) const;
+		void	mergeInsertSort(std::deque<unsigned int>& list, int& compareCount) const;
+		void	binaryInsert(std::deque<unsigned int>& arr, unsigned int value, int& compareCount) const;
 
 	private:
 		char**						_inputList;
@@ -43,6 +43,8 @@ class PmergeMe {
 		std::deque<unsigned int>	_deqList;
 		double						_vecTimeus;
 		double						_deqTimeus;
+		int							_vecCompareCount;
+		int							_deqCompareCount;
 };
 
 #endif

@@ -10,14 +10,14 @@
 /*
  * デフォルトコンストラクタ
  */
-PmergeMe::PmergeMe() : _inputList(NULL), _size(0), _vecTimeus(0.0), _deqTimeus(0.0) {}
+PmergeMe::PmergeMe() : _inputList(NULL), _size(0), _vecTimeus(0.0), _deqTimeus(0.0), _vecCompareCount(0), _deqCompareCount(0) {}
 
 
 /*
  * コンストラクタ
  */
 PmergeMe::PmergeMe(char** input, const unsigned int n)
- 	: _inputList(input), _size(n), _vecTimeus(0.0), _deqTimeus(0.0) {}
+ 	: _inputList(input), _size(n), _vecTimeus(0.0), _deqTimeus(0.0), _vecCompareCount(0), _deqCompareCount(0) {}
 
 /*
  * コピーコンストラクタ
@@ -28,6 +28,8 @@ PmergeMe::PmergeMe(const PmergeMe& copy) {
 	_deqList = copy._deqList;
 	_vecTimeus = copy._vecTimeus;
 	_deqTimeus = copy._deqTimeus;
+	_vecCompareCount = copy._vecCompareCount;
+	_deqCompareCount = copy._deqCompareCount;
 }
 
 /*
@@ -40,6 +42,8 @@ PmergeMe &PmergeMe::operator=(const PmergeMe& copy) {
 		_deqList = copy._deqList;
 		_vecTimeus = copy._vecTimeus;
 		_deqTimeus = copy._deqTimeus;
+		_vecCompareCount = copy._vecCompareCount;
+		_deqCompareCount = copy._deqCompareCount;
 	}
 	return (*this);
 }
@@ -118,12 +122,16 @@ void	PmergeMe::printResult() {
 	std::cout << std::endl << std::endl;
 
 	std::cout << "要素数: " << _vecList.size()
-			<< ", 使用コンテナ: std::vector, 処理にかかった時間: "
-			<< _vecTimeus << " us(マイクロ秒)" << std::endl << std::endl;
+			<< ", 使用コンテナ: std::vector"
+			<< ", 処理にかかった時間: " << _vecTimeus << " us"
+			<< ", 比較回数: " << _vecCompareCount << " 回"
+			<< std::endl << std::endl;
 
 	std::cout << "要素数: " << _deqList.size()
-			<< ", 使用コンテナ: std::vector, 処理にかかった時間: "
-			<< _deqTimeus << " us(マイクロ秒)" << std::endl << std::endl;
+			<< ", 使用コンテナ: std::deque"
+			<< ", 処理にかかった時間: " << _deqTimeus << " us"
+			<< ", 比較回数: " << _deqCompareCount << " 回"
+			<< std::endl << std::endl;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -145,17 +153,41 @@ std::vector<unsigned int> PmergeMe::loadInputToVector(char** input) const
 	return (out);
 }
 
-// 昇順ベクタに対する二分挿入
-void PmergeMe::binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const
+// 手動二分探索（比較回数カウント付き）
+static std::vector<unsigned int>::iterator binarySearchWithCount(
+	std::vector<unsigned int>::iterator begin,
+	std::vector<unsigned int>::iterator end,
+	unsigned int value,
+	int& compareCount)
 {
-	std::vector<unsigned int>::iterator it = std::lower_bound(arr.begin(), arr.end(), value);
+	std::vector<unsigned int>::iterator left = begin;
+	std::vector<unsigned int>::iterator right = end;
+
+	while (left < right) {
+		std::vector<unsigned int>::iterator mid = left + (right - left) / 2;
+		compareCount++;  // 比較回数カウント
+		// std::cout << "compareCount: " << compareCount << ", mid: "<< *mid << ", value: " << value << std::endl;
+		if (*mid < value) {
+			left = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
+	return left;
+}
+
+// 昇順ベクタに対する二分挿入（比較回数カウント付き）
+void PmergeMe::binaryInsert(std::vector<unsigned int>& arr, unsigned int value, int& compareCount) const
+{
+	std::vector<unsigned int>::iterator it = binarySearchWithCount(arr.begin(), arr.end(), value, compareCount);
 	arr.insert(it, value);
 }
 
 // Jacobsthal 数列の順序で losers を chain に挿入
 static void insertLosers(
 	std::vector<unsigned int>& chain,
-	const std::vector<std::pair<unsigned int, unsigned int> >& losers)
+	const std::vector<std::pair<unsigned int, unsigned int> >& losers,
+	int& compareCount)
 {
 	int start = 0;
 	int k = 1;
@@ -169,11 +201,13 @@ static void insertLosers(
 			unsigned int winner = losers[i].first;
 			unsigned int loser = losers[i].second;
 
-			// winner の位置を探す
-			std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
+			// winner の位置を探す（比較カウントなし：実装上の補助処理）
+			std::vector<unsigned int>::iterator winnerIt =
+				std::lower_bound(chain.begin(), chain.end(), winner);
 
-			// [begin, winnerIt) の範囲で loser を二分挿入
-			std::vector<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
+			// [begin, winnerIt) の範囲で loser を二分挿入（比較カウントあり：本質的な比較）
+			std::vector<unsigned int>::iterator ins =
+				binarySearchWithCount(chain.begin(), winnerIt, loser, compareCount);
 			chain.insert(ins, loser);
 		}
 		start = end;
@@ -181,7 +215,7 @@ static void insertLosers(
 	}
 }
 
-void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
+void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCount) const
 {
 	// winner の値と、元のインデックスと loser をセットで管理
 	std::vector<std::pair<unsigned int, size_t> > chainWithIndex;  // (winner値, 元index)
@@ -207,6 +241,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 		unsigned int b = list[i + 1];
 		size_t pairIndex = i / 2;  // ペアのインデックス
 
+		compareCount++;  // 比較回数カウント
 		if (a < b) {
 			chainWithIndex.push_back(std::make_pair(b, pairIndex));
 			losersByIndex.push_back(a);
@@ -222,7 +257,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 		chain.push_back(chainWithIndex[i].first);
 	}
 
-	mergeInsertSort(chain);
+	mergeInsertSort(chain, compareCount);
 
 	// 再帰後：chain の順序に合わせて losers を再構築
 	std::vector<std::pair<unsigned int, unsigned int> > losers;
@@ -231,6 +266,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 
 		// この winner の元のインデックスを探す
 		for (size_t j = 0; j < chainWithIndex.size(); ++j) {
+			// compareCount++;  // 比較回数カウント
 			if (chainWithIndex[j].first == winner) {
 				size_t originalIndex = chainWithIndex[j].second;
 				unsigned int loser = losersByIndex[originalIndex];
@@ -248,9 +284,9 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 		chain.insert(chain.begin(), firstLoser);
 		losers.erase(losers.begin());
 	}
-	insertLosers(chain, losers);
 	if (hasExtra)
-		binaryInsert(chain, extra);
+		binaryInsert(chain, extra, compareCount);
+	insertLosers(chain, losers, compareCount);
 
 	list.swap(chain);
 }
@@ -260,7 +296,8 @@ bool	PmergeMe::executeVecter() {
 
 	gettimeofday(&start, NULL);
 	std::vector<unsigned int> tokens = loadInputToVector(_inputList);
-	mergeInsertSort(tokens);
+	_vecCompareCount = 0;
+	mergeInsertSort(tokens, _vecCompareCount);
 	_vecList = tokens;
 	gettimeofday(&end, NULL);
 
@@ -288,17 +325,40 @@ std::deque<unsigned int> PmergeMe::loadInputToDeque(char** input) const
 	return (out);
 }
 
-// 昇順ベクタに対する二分挿入
-void PmergeMe::binaryInsert(std::deque<unsigned int>& arr, unsigned int value) const
+// 手動二分探索（比較回数カウント付き・deque版）
+static std::deque<unsigned int>::iterator binarySearchWithCount(
+	std::deque<unsigned int>::iterator begin,
+	std::deque<unsigned int>::iterator end,
+	unsigned int value,
+	int& compareCount)
 {
-	std::deque<unsigned int>::iterator it = std::lower_bound(arr.begin(), arr.end(), value);
+	std::deque<unsigned int>::iterator left = begin;
+	std::deque<unsigned int>::iterator right = end;
+
+	while (left < right) {
+		std::deque<unsigned int>::iterator mid = left + (right - left) / 2;
+		compareCount++;  // 比較回数カウント
+		if (*mid < value) {
+			left = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
+	return left;
+}
+
+// 昇順ベクタに対する二分挿入（比較回数カウント付き）
+void PmergeMe::binaryInsert(std::deque<unsigned int>& arr, unsigned int value, int& compareCount) const
+{
+	std::deque<unsigned int>::iterator it = binarySearchWithCount(arr.begin(), arr.end(), value, compareCount);
 	arr.insert(it, value);
 }
 
 // Jacobsthal 数列の順序で losers を chain に挿入
 static void insertLosers(
 	std::deque<unsigned int>& chain,
-	const std::deque<std::pair<unsigned int, unsigned int> >& losers)
+	const std::deque<std::pair<unsigned int, unsigned int> >& losers,
+	int& compareCount)
 {
 	int start = 0;
 	int k = 1;
@@ -312,11 +372,13 @@ static void insertLosers(
 			unsigned int winner = losers[i].first;
 			unsigned int loser = losers[i].second;
 
-			// winner の位置を探す
-			std::deque<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
+			// winner の位置を探す（比較カウントなし：実装上の補助処理）
+			std::deque<unsigned int>::iterator winnerIt =
+				std::lower_bound(chain.begin(), chain.end(), winner);
 
-			// [begin, winnerIt) の範囲で loser を二分挿入
-			std::deque<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
+			// [begin, winnerIt) の範囲で loser を二分挿入（比較カウントあり：本質的な比較）
+			std::deque<unsigned int>::iterator ins =
+				binarySearchWithCount(chain.begin(), winnerIt, loser, compareCount);
 			chain.insert(ins, loser);
 		}
 		start = end;
@@ -324,7 +386,7 @@ static void insertLosers(
 	}
 }
 
-void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
+void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list, int& compareCount) const
 {
 	// winner の値と、元のインデックスと loser をセットで管理
 	std::deque<std::pair<unsigned int, size_t> > chainWithIndex;  // (winner値, 元index)
@@ -350,6 +412,7 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 		unsigned int b = list[i + 1];
 		size_t pairIndex = i / 2;  // ペアのインデックス
 
+		compareCount++;  // 比較回数カウント
 		if (a < b) {
 			chainWithIndex.push_back(std::make_pair(b, pairIndex));
 			losersByIndex.push_back(a);
@@ -363,7 +426,7 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 	for (size_t i = 0; i < chainWithIndex.size(); ++i) {
 		chain.push_back(chainWithIndex[i].first);
 	}
-	mergeInsertSort(chain);
+	mergeInsertSort(chain, compareCount);
 
 	// 再帰後：chain の順序に合わせて losers を再構築
 	std::deque<std::pair<unsigned int, unsigned int> > losers;
@@ -372,6 +435,7 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 
 		// この winner の元のインデックスを探す
 		for (size_t j = 0; j < chainWithIndex.size(); ++j) {
+			// compareCount++;  // 比較回数カウント
 			if (chainWithIndex[j].first == winner) {
 				size_t originalIndex = chainWithIndex[j].second;
 				unsigned int loser = losersByIndex[originalIndex];
@@ -388,9 +452,9 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 		chain.insert(chain.begin(), firstLoser);
 		losers.erase(losers.begin());
 	}
-	insertLosers(chain, losers);
 	if (hasExtra)
-		binaryInsert(chain, extra);
+		binaryInsert(chain, extra, compareCount);
+	insertLosers(chain, losers, compareCount);
 
 	list.swap(chain);
 }
@@ -400,7 +464,8 @@ bool	PmergeMe::executeDeque() {
 
 	gettimeofday(&start, NULL);
 	std::deque<unsigned int> tokens = loadInputToDeque(_inputList);
-	mergeInsertSort(tokens);
+	_deqCompareCount = 0;
+	mergeInsertSort(tokens, _deqCompareCount);
 	_deqList = tokens;
 	gettimeofday(&end, NULL);
 
