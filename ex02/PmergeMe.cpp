@@ -10,14 +10,14 @@
 /*
  * デフォルトコンストラクタ
  */
-PmergeMe::PmergeMe() : _size(0), _vecTimeus(0.0), _deqTimeus(0.0) {}
+PmergeMe::PmergeMe() : _inputList(NULL), _size(0), _vecTimeus(0.0), _deqTimeus(0.0) {}
 
 
 /*
  * コンストラクタ
  */
-PmergeMe::PmergeMe(const unsigned int n)
- 	: _size(n), _vecTimeus(0.0), _deqTimeus(0.0) {}
+PmergeMe::PmergeMe(char** input, const unsigned int n)
+ 	: _inputList(input), _size(n), _vecTimeus(0.0), _deqTimeus(0.0) {}
 
 /*
  * コピーコンストラクタ
@@ -105,20 +105,25 @@ void	PmergeMe::setTimeus(struct timeval start, struct timeval end, double& outTi
 }
 
 void	PmergeMe::printResult() {
-	//tood: びふぉー
+	std::cout << "Before:";
+	for (int i = 0; i < _size; ++i) {
+		std::cout << " " << _inputList[i];
+	}
+	std::cout << std::endl << std::endl;
 
-	std::cout << "\nAfter:";
-	for (unsigned int i = 0; i < _vecList.size(); i++) {
+	std::cout << "After :";
+	for (size_t i = 0; i < _vecList.size(); i++) {
 		std::cout << " " << _vecList[i];
 	}
+	std::cout << std::endl << std::endl;
 
-	std::cout << "\n要素数: " << _size
+	std::cout << "要素数: " << _vecList.size()
 			<< ", 使用コンテナ: std::vector, 処理にかかった時間: "
-			<< _vecTimeus << " us(マイクロ秒)" << std::endl;
+			<< _vecTimeus << " us(マイクロ秒)" << std::endl << std::endl;
 
-	std::cout << "\n要素数: " << _size
+	std::cout << "要素数: " << _deqList.size()
 			<< ", 使用コンテナ: std::vector, 処理にかかった時間: "
-			<< _deqTimeus << " us(マイクロ秒)" << std::endl;
+			<< _deqTimeus << " us(マイクロ秒)" << std::endl << std::endl;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -150,12 +155,10 @@ static void insertLosers(
 			unsigned int loser = losers[i].second;
 
 			// winner の位置を探す
-			std::vector<unsigned int>::iterator winnerIt =
-				std::lower_bound(chain.begin(), chain.end(), winner);
+			std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
 
 			// [begin, winnerIt) の範囲で loser を二分挿入
-			std::vector<unsigned int>::iterator ins =
-				std::lower_bound(chain.begin(), winnerIt, loser);
+			std::vector<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
 			chain.insert(ins, loser);
 		}
 		start = end;
@@ -163,7 +166,7 @@ static void insertLosers(
 	}
 }
 
-void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const
+void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 {
 	// winner の値と、元のインデックスと loser をセットで管理
 	std::vector<std::pair<unsigned int, size_t> > chainWithIndex;  // (winner値, 元index)
@@ -204,7 +207,7 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel)
 		chain.push_back(chainWithIndex[i].first);
 	}
 
-	mergeInsertSort(chain, false);
+	mergeInsertSort(chain);
 
 	// 再帰後：chain の順序に合わせて losers を再構築
 	std::vector<std::pair<unsigned int, unsigned int> > losers;
@@ -224,9 +227,8 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel)
 			}
 		}
 	}
-	// isTopLevel なら chain[0] のペアを先頭に挿入
-	(void)isTopLevel;
-	if (isTopLevel && !losers.empty()) {
+	// chain[0] のペアを先頭に挿入
+	if (!losers.empty()) {
 		unsigned int firstLoser = losers[0].second;
 		chain.insert(chain.begin(), firstLoser);
 		losers.erase(losers.begin());
@@ -238,21 +240,18 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel)
 	list.swap(chain);
 }
 
-bool	PmergeMe::execute_1(char**	input) {
+bool	PmergeMe::executeVecter() {
 	struct timeval start, end;
-	gettimeofday(&start, NULL);  // 開始時刻
 
-	std::vector<unsigned int> tokens = loadInputToContainer<std::vector<unsigned int> >(input);
-	mergeInsertSort(tokens, true);
+	gettimeofday(&start, NULL);// 開始時刻
+	std::vector<unsigned int> tokens = loadInputToContainer<std::vector<unsigned int> >(_inputList);
+	mergeInsertSort(tokens);
 	_vecList = tokens;
-
-	gettimeofday(&end, NULL);  // 終了時刻
+	gettimeofday(&end, NULL);// 終了時刻
 
 	setTimeus(start, end, _vecTimeus);
-
 	return(true);
 }
-
 
 
 // ------------------------------------------------------------------------------------------------
@@ -285,12 +284,10 @@ static void insertLosers(
 			unsigned int loser = losers[i].second;
 
 			// winner の位置を探す
-			std::deque<unsigned int>::iterator winnerIt =
-				std::lower_bound(chain.begin(), chain.end(), winner);
+			std::deque<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
 
 			// [begin, winnerIt) の範囲で loser を二分挿入
-			std::deque<unsigned int>::iterator ins =
-				std::lower_bound(chain.begin(), winnerIt, loser);
+			std::deque<unsigned int>::iterator ins = std::lower_bound(chain.begin(), winnerIt, loser);
 			chain.insert(ins, loser);
 		}
 		start = end;
@@ -298,7 +295,7 @@ static void insertLosers(
 	}
 }
 
-void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) const
+void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 {
 	// winner の値と、元のインデックスと loser をセットで管理
 	std::deque<std::pair<unsigned int, size_t> > chainWithIndex;  // (winner値, 元index)
@@ -337,7 +334,7 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) 
 	for (size_t i = 0; i < chainWithIndex.size(); ++i) {
 		chain.push_back(chainWithIndex[i].first);
 	}
-	mergeInsertSort(chain, false);
+	mergeInsertSort(chain);
 
 	// 再帰後：chain の順序に合わせて losers を再構築
 	std::deque<std::pair<unsigned int, unsigned int> > losers;
@@ -356,8 +353,8 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) 
 			}
 		}
 	}
-	// isTopLevel なら chain[0] のペアを先頭に挿入
-	if (isTopLevel && !losers.empty()) {
+	// chain[0] のペアを先頭に挿入
+	if (!losers.empty()) {
 		unsigned int firstLoser = losers[0].second;
 		chain.insert(chain.begin(), firstLoser);
 		losers.erase(losers.begin());
@@ -369,15 +366,15 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) 
 	list.swap(chain);
 }
 
-bool	PmergeMe::execute_2(char**	input) {
+bool	PmergeMe::executeDeque() {
 	struct timeval start, end;
 
-	gettimeofday(&start, NULL);  // 開始時刻
-	std::deque<unsigned int> tokens = loadInputToContainer<std::deque<unsigned int> >(input);
-	mergeInsertSort(tokens, true);
+	gettimeofday(&start, NULL);// 開始時刻
+	std::deque<unsigned int> tokens = loadInputToContainer<std::deque<unsigned int> >(_inputList);
+	mergeInsertSort(tokens);
 	_deqList = tokens;
+	gettimeofday(&end, NULL);// 終了時刻
 
-	gettimeofday(&end, NULL);  // 終了時刻
 	setTimeus(start, end, _deqTimeus);
 	return(true);
 }

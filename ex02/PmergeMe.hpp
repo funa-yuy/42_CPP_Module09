@@ -20,7 +20,7 @@
 class PmergeMe {
 	public:
 		PmergeMe();
-		PmergeMe(const unsigned int n);
+		PmergeMe(char** input, const unsigned int n);
 		PmergeMe& operator=(const PmergeMe& copy);
 		PmergeMe(const PmergeMe& copy);
 		~PmergeMe();
@@ -29,13 +29,13 @@ class PmergeMe {
 		void	setTimeus(struct timeval start, struct timeval end, double& outTime);
 		void	printResult();
 
-		bool	execute_1(char**	input);
-		void	mergeInsertSort(std::vector<unsigned int>& list, bool isTopLevel) const;
+		bool	executeVecter();
+		void	mergeInsertSort(std::vector<unsigned int>& list) const;
 		void	binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const;
 
 
-		bool	execute_2(char**	input);
-		void	mergeInsertSort(std::deque<unsigned int>& list, bool isTopLevel) const;
+		bool	executeDeque();
+		void	mergeInsertSort(std::deque<unsigned int>& list) const;
 		void	binaryInsert(std::deque<unsigned int>& arr, unsigned int value) const;
 
 		template <typename Container>
@@ -43,7 +43,8 @@ class PmergeMe {
 
 
 	private:
-		unsigned int				_size;
+		char**						_inputList;
+		int							_size;
 		std::vector<unsigned int>	_vecList;
 		std::deque<unsigned int>	_deqList;
 		double						_vecTimeus;
@@ -60,7 +61,7 @@ template <typename Container>
 Container PmergeMe::loadInputToContainer(char** input) const
 {
 	Container out;
-	for (unsigned int i = 0; i < _size; ++i)
+	for (int i = 0; i < _size; ++i)
 	{
 		int num;
 		if (!validPositiveInt(std::string(input[i]), num)) {

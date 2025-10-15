@@ -10,26 +10,11 @@ int main(int argc, char* argv[])
 		std::cerr << "Error: 引数が不足しています" << std::endl;
 		return (EXIT_FAILURE);
 	}
-
-	std::cout << "Before:";
-	for (int i = 1; i < argc; ++i) {
-		std::cout << " " << argv[i];
-	}
-	std::cout << "\n";
-
-	PmergeMe p(argc - 1);
-	//1個目のコンテナでのソート
-	if (!p.execute_1(&argv[1])) {
+	PmergeMe p(&argv[1], argc - 1);
+	if (!p.executeVecter())
 		return (EXIT_FAILURE);
-	}
-
-	//2個目のコンテナでのソート
-	if (!p.execute_2(&argv[1])) {
+	if (!p.executeDeque())
 		return (EXIT_FAILURE);
-	}
-
 	p.printResult();
-
-	//ビフォーとアフター出力&計測時間出力
 	return (EXIT_SUCCESS);
 }
