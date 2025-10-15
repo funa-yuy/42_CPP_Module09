@@ -130,6 +130,21 @@ void	PmergeMe::printResult() {
 // vecter
 // ------------------------------------------------------------------------------------------------
 
+std::vector<unsigned int> PmergeMe::loadInputToVector(char** input) const
+{
+	std::vector<unsigned int> out;
+	for (int i = 0; i < _size; ++i)
+	{
+		int num;
+		if (!validPositiveInt(std::string(input[i]), num)) {
+			std::cerr << "Error: 不正な値が含まれています。" << std::endl;
+			std::exit(EXIT_FAILURE);
+		}
+		out.push_back(num);
+	}
+	return (out);
+}
+
 // 昇順ベクタに対する二分挿入
 void PmergeMe::binaryInsert(std::vector<unsigned int>& arr, unsigned int value) const
 {
@@ -243,11 +258,11 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list) const
 bool	PmergeMe::executeVecter() {
 	struct timeval start, end;
 
-	gettimeofday(&start, NULL);// 開始時刻
-	std::vector<unsigned int> tokens = loadInputToContainer<std::vector<unsigned int> >(_inputList);
+	gettimeofday(&start, NULL);
+	std::vector<unsigned int> tokens = loadInputToVector(_inputList);
 	mergeInsertSort(tokens);
 	_vecList = tokens;
-	gettimeofday(&end, NULL);// 終了時刻
+	gettimeofday(&end, NULL);
 
 	setTimeus(start, end, _vecTimeus);
 	return(true);
@@ -258,6 +273,20 @@ bool	PmergeMe::executeVecter() {
 // deque
 // ------------------------------------------------------------------------------------------------
 
+std::deque<unsigned int> PmergeMe::loadInputToDeque(char** input) const
+{
+	std::deque<unsigned int> out;
+	for (int i = 0; i < _size; ++i)
+	{
+		int num;
+		if (!validPositiveInt(std::string(input[i]), num)) {
+			std::cerr << "Error: 不正な値が含まれています。" << std::endl;
+			std::exit(EXIT_FAILURE);
+		}
+		out.push_back(num);
+	}
+	return (out);
+}
 
 // 昇順ベクタに対する二分挿入
 void PmergeMe::binaryInsert(std::deque<unsigned int>& arr, unsigned int value) const
@@ -369,11 +398,11 @@ void PmergeMe::mergeInsertSort(std::deque<unsigned int>& list) const
 bool	PmergeMe::executeDeque() {
 	struct timeval start, end;
 
-	gettimeofday(&start, NULL);// 開始時刻
-	std::deque<unsigned int> tokens = loadInputToContainer<std::deque<unsigned int> >(_inputList);
+	gettimeofday(&start, NULL);
+	std::deque<unsigned int> tokens = loadInputToDeque(_inputList);
 	mergeInsertSort(tokens);
 	_deqList = tokens;
-	gettimeofday(&end, NULL);// 終了時刻
+	gettimeofday(&end, NULL);
 
 	setTimeus(start, end, _deqTimeus);
 	return(true);

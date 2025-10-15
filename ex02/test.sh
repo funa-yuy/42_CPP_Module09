@@ -77,11 +77,11 @@ run_test() {
     local full_output=$(./PmergeMe $args 2>&1)
     local exit_code=$?
 
-    # After: の行を抽出
-    local after_line=$(echo "$full_output" | grep "^After:")
+    # After : の行を抽出
+    local after_line=$(echo "$full_output" | grep "^After :")
 
     if [ -z "$after_line" ]; then
-        echo -e "${RED}✗ FAIL${NC}: No 'After:' line found in output"
+        echo -e "${RED}✗ FAIL${NC}: No 'After :' line found in output"
         echo "Full output:"
         echo "$full_output"
         FAILED=$((FAILED + 1))
@@ -89,8 +89,8 @@ run_test() {
         return
     fi
 
-    # "After:" を除去して数値のみ取得
-    local output=$(echo "$after_line" | sed 's/^After://' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    # "After :" を除去して数値のみ取得
+    local output=$(echo "$after_line" | sed 's/^After ://' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
     echo "Output: $output"
 
@@ -141,17 +141,17 @@ run_perf_test() {
         echo "Execution time: ${elapsed_ms}ms"
     fi
 
-    # After: の行を抽出
-    local after_line=$(echo "$full_output" | grep "^After:")
+    # After : の行を抽出
+    local after_line=$(echo "$full_output" | grep "^After :")
 
     if [ -z "$after_line" ]; then
-        echo -e "${RED}✗ FAIL${NC}: No 'After:' line found"
+        echo -e "${RED}✗ FAIL${NC}: No 'After :' line found"
         FAILED=$((FAILED + 1))
         TOTAL=$((TOTAL + 1))
         return
     fi
 
-    local output=$(echo "$after_line" | sed 's/^After://' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    local output=$(echo "$after_line" | sed 's/^After ://' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
 
     # 要素数チェック
     local count_match=$(check_element_count "$random_nums" "$output")
