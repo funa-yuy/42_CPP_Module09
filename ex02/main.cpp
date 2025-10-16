@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
 	PmergeMe p(&argv[1], argc - 1);
 	if (!p.executeVecter())
 		return (EXIT_FAILURE);
-	if (!p.executeDeque())
-		return (EXIT_FAILURE);
+	// if (!p.executeDeque())
+	// 	return (EXIT_FAILURE);
 	p.printResult();
 	return (EXIT_SUCCESS);
 }
