@@ -86,12 +86,12 @@ static int jacobsthal(int n) {
 	if (n <= 0)
 		return (0);
 	if (n == 1)
-		return (1);  // J(2) = 1
+		return (1);
 	if (n == 2)
-		return (3);  // J(3) = 3
+		return (3);
 
-	int prev2 = 1;  // J(2)
-	int prev1 = 3;  // J(3)
+	int prev2 = 1;
+	int prev1 = 3;
 	int curr;
 
 	for (int i = 3; i <= n; ++i) {
@@ -99,7 +99,6 @@ static int jacobsthal(int n) {
 		prev2 = prev1;
 		prev1 = curr;
 	}
-	std::cout << "[jacobsthal] n: " << n << ", curr: " << curr << std::endl;
 	return (curr);
 }
 
@@ -166,13 +165,9 @@ static std::vector<unsigned int>::iterator binarySearchWithCount(
 	std::vector<unsigned int>::iterator left = begin;
 	std::vector<unsigned int>::iterator right = end;
 
-	std::cout << "[binarySearchWithCount]: " << value << std::endl;
 	while (left < right) {
 		std::vector<unsigned int>::iterator mid = left + (right - left) / 2;
 		compareCount++;  // 比較回数カウント
-		std::cout << "compareCount: " << compareCount
-				<< ", left: " << *left << ", right: " << *right
-				<< ", mid: "<< *mid << ", value: " << value << std::endl;
 		if (*mid < value) {
 			left = mid + 1;
 		} else {
@@ -185,7 +180,6 @@ static std::vector<unsigned int>::iterator binarySearchWithCount(
 // 昇順ベクタに対する二分挿入（比較回数カウント付き）
 void PmergeMe::binaryInsert(std::vector<unsigned int>& arr, unsigned int value, int& compareCount) const
 {
-	std::cout << std::endl << "[binaryInsert関数] value: " << value << std::endl;
 	std::vector<unsigned int>::iterator it = binarySearchWithCount(arr.begin(), arr.end(), value, compareCount);
 	arr.insert(it, value);
 }
@@ -196,14 +190,10 @@ static void insertLosers(
 	const std::vector<std::pair<unsigned int, unsigned int> >& losers,
 	int& compareCount)
 {
-	std::cout << std::endl << "[insertLosers関数] losers.size(): " << losers.size() << std::endl;
 	int start = 1;
 	int k = 1;
 	while (start < (int)losers.size()) {
 		int end = jacobsthal(k);
-		std::cout << std::endl << "[for] losers.size(): " << losers.size()
-					<< ", start: " << start
-					<< ", end: " << end << std::endl;
 		if (end > (int)losers.size())
 			end = (int)losers.size();
 
@@ -219,11 +209,6 @@ static void insertLosers(
 			std::vector<unsigned int>::iterator ins =
 				binarySearchWithCount(chain.begin(), winnerIt, loser, compareCount);
 			chain.insert(ins, loser);
-			for (size_t j = 0; j < losers.size(); ++j) {
-				std::cout << "losers[" << j << "]: "
-				<< ", winner: " << losers[j].first
-				<< ", loser: " << losers[j].second << std::endl;
-			}
 		}
 		start = end;
 		++k;
@@ -247,7 +232,6 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCoun
 		extra = list.back();
 		list.pop_back();
 		hasExtra = true;
-		std::cout << std::endl << "[奇数あまり] extra: " << extra << std::endl;
 		n--;
 	}
 
@@ -258,10 +242,6 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCoun
 		size_t pairIndex = i / 2;  // ペアのインデックス
 
 		compareCount++;  // 比較回数カウント
-		std::cout << "compareCount: " << compareCount
-					<< ", list[" << i << "]: " << a
-					<< ", list[" << i << " + 1]: " << b
-					<< ", pairIndex: "<< pairIndex << std::endl;
 		if (a < b) {
 			chainWithIndex.push_back(std::make_pair(b, pairIndex));
 			losersByIndex.push_back(a);
@@ -297,20 +277,12 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCoun
 		}
 	}
 	// 奇数で余ったextraをlosersの最後に追加
-	if (hasExtra) {
-		std::cout << std::endl << "[losersの最後に追加] extra: " << extra << std::endl;
+	if (hasExtra)
 		losers.push_back(std::make_pair(UINT_MAX, extra));
-	}
 
-	for (size_t j = 0; j < losers.size(); ++j) {
-		std::cout << "losers[" << j << "]: "
-		<< ", winner" << losers[j].first
-		<< ", loser" << losers[j].second << std::endl;
-	}
 	// chain[0] のペアを先頭に挿入
 	if (!losers.empty()) {
 		unsigned int firstLoser = losers[0].second;
-		std::cout << std::endl << "[先頭に挿入] firstLoser: " << firstLoser << std::endl;
 		chain.insert(chain.begin(), firstLoser);
 	}
 	insertLosers(chain, losers, compareCount);
