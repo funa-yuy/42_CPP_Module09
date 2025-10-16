@@ -5,6 +5,7 @@
 #include <climits>
 #include <cctype>
 #include <cstdlib>
+#include <iomanip>
 
 /*
  * デフォルトコンストラクタ
@@ -110,7 +111,7 @@ bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 	}
 
 	std::string line;
-	if (!std::getline(ifs, line))//1行目は確定でスキップ
+	if (!std::getline(ifs, line))
 		return (false);
 
 	while (std::getline(ifs, line))
@@ -224,7 +225,7 @@ bool	BitcoinExchange::execute(char* input) {
 	 }
 
 	std::string line;
-	if (!std::getline(ifs, line))//1行目は確定でスキップ
+	if (!std::getline(ifs, line))
 		return (false);
 
 	while (std::getline(ifs, line))
@@ -239,7 +240,8 @@ bool	BitcoinExchange::execute(char* input) {
 			continue ;
 
 		double result = getExchangeRate(outDate, outValue);
-		std::cout << outDate << " => " << outValue << " = " << result << std::endl;
+		std::cout << outDate << " => " << outValue << " = "
+				  << std::fixed << std::setprecision(2) << result << std::endl;
 	}
 	return (true);
 }

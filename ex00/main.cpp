@@ -4,17 +4,16 @@
 
 int main(int argc, char* argv[])
 {
-	(void)argv;
 	if (argc != 2) {
-		std::cout << "Error: could not open file." << std::endl;
+		std::cout << "Error: Invalid argument." << std::endl;
 		return (EXIT_FAILURE);
 	}
 
 	BitcoinExchange	b;
 
-	if (!b.loadDatabase("./data.csv"))//./data.csvを読み込む
+	if (!b.loadDatabase("./data.csv"))
 		return (EXIT_FAILURE);
-	if (!b.execute(argv[1]))//計算を実行する
+	if (!b.execute(argv[1]))
 		return (EXIT_FAILURE);
 
 	return (EXIT_SUCCESS);
