@@ -56,6 +56,60 @@ PmergeMe::~PmergeMe() {}
 
 // ↑↑↑ Orthodox Canonical Form --------------------------------------
 
+void	PmergeMe::setTimeus(struct timeval start, struct timeval end, double& outTime) {
+	long seconds = end.tv_sec - start.tv_sec;
+	long microseconds = end.tv_usec - start.tv_usec;
+	double elapsed = seconds * 1000000.0 + microseconds;
+
+	outTime = elapsed;
+}
+
+// vectorがソート済みか確認
+static bool isSorted(const std::vector<unsigned int>& list) {
+	for (size_t i = 0; i + 1 < list.size(); ++i) {
+		if (list[i] > list[i + 1])
+			return (false);
+	}
+	return (true);
+}
+
+// dequeがソート済みか確認
+static bool isSorted(const std::deque<unsigned int>& list) {
+	for (size_t i = 0; i + 1 < list.size(); ++i) {
+		if (list[i] > list[i + 1])
+			return (false);
+	}
+	return (true);
+}
+
+void	PmergeMe::printResult() {
+	std::cout << "Before:";
+	for (int i = 0; i < _size; ++i) {
+		std::cout << " " << _inputList[i];
+	}
+	std::cout << std::endl;
+
+	std::cout << "After :";
+	for (size_t i = 0; i < _vecList.size(); i++) {
+		std::cout << " " << _vecList[i];
+	}
+	std::cout << std::endl;
+
+	std::cout << "[使用コンテナ] std::vector"
+			<< ",  [要素数] " << _vecList.size()
+			<< ",  [処理時間] " << _vecTimeus << " us"
+			<< ",  [比較回数] " << _vecCompareCount << " 回"
+			<< ",  [ソート] " << (isSorted(_vecList) ? "OK" : "NG")
+			<< std::endl;
+
+	std::cout << "[使用コンテナ] std::deque"
+			<< ",   [要素数] " << _deqList.size()
+			<< ",  [処理時間] " << _deqTimeus << " us"
+			<< ",  [比較回数] " << _deqCompareCount << " 回"
+			<< ",  [ソート] " << (isSorted(_deqList) ? "OK" : "NG")
+			<< std::endl;
+}
+
 // 文字列が正の整数かを確認し、変換する（負値・非数は false）
 bool PmergeMe::validPositiveInt(const std::string& s, int& out) const
 {
@@ -98,40 +152,6 @@ static int jacobsthal(int n) {
 		prev1 = curr;
 	}
 	return (curr);
-}
-
-void	PmergeMe::setTimeus(struct timeval start, struct timeval end, double& outTime) {
-	long seconds = end.tv_sec - start.tv_sec;
-	long microseconds = end.tv_usec - start.tv_usec;
-	double elapsed = seconds * 1000000.0 + microseconds;
-
-	outTime = elapsed;
-}
-
-void	PmergeMe::printResult() {
-	std::cout << "Before:";
-	for (int i = 0; i < _size; ++i) {
-		std::cout << " " << _inputList[i];
-	}
-	std::cout << std::endl << std::endl;
-
-	std::cout << "After :";
-	for (size_t i = 0; i < _vecList.size(); i++) {
-		std::cout << " " << _vecList[i];
-	}
-	std::cout << std::endl << std::endl;
-
-	std::cout << "要素数: " << _vecList.size()
-			<< ", 使用コンテナ: std::vector"
-			<< ", 処理にかかった時間: " << _vecTimeus << " us"
-			<< ", 比較回数: " << _vecCompareCount << " 回"
-			<< std::endl << std::endl;
-
-	std::cout << "要素数: " << _deqList.size()
-			<< ", 使用コンテナ: std::deque"
-			<< ", 処理にかかった時間: " << _deqTimeus << " us"
-			<< ", 比較回数: " << _deqCompareCount << " 回"
-			<< std::endl << std::endl;
 }
 
 // ------------------------------------------------------------------------------------------------
