@@ -83,18 +83,16 @@ bool PmergeMe::validPositiveInt(const std::string& s, int& out) const
 }
 
 static int jacobsthal(int n) {
-	if (n <= 0)
+	if (n == 0)
 		return (0);
 	if (n == 1)
 		return (1);
-	if (n == 2)
-		return (3);
 
-	int prev2 = 1;
-	int prev1 = 3;
+	int prev2 = 0;
+	int prev1 = 1;
 	int curr;
 
-	for (int i = 3; i <= n; ++i) {
+	for (int i = 2; i <= n; ++i) {
 		curr = prev1 + 2 * prev2;
 		prev2 = prev1;
 		prev1 = curr;
@@ -190,25 +188,25 @@ static void insertLosers(
 	const std::vector<std::pair<unsigned int, unsigned int> >& losers,
 	int& compareCount)
 {
-	int start = 1;
+	int start = 0;
 	int k = 1;
 	while (start < (int)losers.size()) {
 		int end = jacobsthal(k);
 		if (end > (int)losers.size())
 			end = (int)losers.size();
 
-		// [start, end) の範囲を降順で挿入
 		for (int i = end - 1; i >= start; --i) {
 			unsigned int winner = losers[i].first;
 			unsigned int loser = losers[i].second;
 
-			std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
-
-
-			// [begin, winnerIt) の範囲で loser を二分挿入（比較カウントあり：本質的な比較）
-			std::vector<unsigned int>::iterator ins =
-				binarySearchWithCount(chain.begin(), winnerIt, loser, compareCount);
-			chain.insert(ins, loser);
+			if (k == 1)
+				chain.insert(chain.begin(), loser);
+			else {
+				std::vector<unsigned int>::iterator winnerIt = std::lower_bound(chain.begin(), chain.end(), winner);
+				std::vector<unsigned int>::iterator ins =
+					binarySearchWithCount(chain.begin(), winnerIt, loser, compareCount);
+				chain.insert(ins, loser);
+			}
 		}
 		start = end;
 		++k;
@@ -280,11 +278,6 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCoun
 	if (hasExtra)
 		losers.push_back(std::make_pair(UINT_MAX, extra));
 
-	// chain[0] のペアを先頭に挿入
-	if (!losers.empty()) {
-		unsigned int firstLoser = losers[0].second;
-		chain.insert(chain.begin(), firstLoser);
-	}
 	insertLosers(chain, losers, compareCount);
 
 	list.swap(chain);

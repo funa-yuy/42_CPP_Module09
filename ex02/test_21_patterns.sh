@@ -28,8 +28,18 @@ fi
 # ソート確認関数
 is_sorted() {
     local arr=($@)
-    for ((i=0; i<${#arr[@]}-1; i++)); do
-        if [ ${arr[i]} -gt ${arr[i+1]} ]; then
+    local len=${#arr[@]}
+
+    # 配列が空または1要素の場合はソート済み
+    if [ $len -le 1 ]; then
+        return 0
+    fi
+
+    # 昇順にソートされているか確認
+    for ((i=0; i<len-1; i++)); do
+        # 数値として比較
+        if [ "${arr[i]}" -gt "${arr[i+1]}" ]; then
+            echo "DEBUG: Not sorted at index $i: ${arr[i]} > ${arr[i+1]}" >&2
             return 1
         fi
     done
@@ -56,19 +66,38 @@ run_test() {
         return
     fi
 
-    # After行を抽出
-    after_line=$(echo "$output" | grep "^After" | sed 's/After ://')
+    # After行を抽出（複数の形式に対応）
+    after_line=$(echo "$output" | grep -E "^After" | sed -E 's/After[[:space:]]*:[[:space:]]*//' | xargs)
+
     if [ -z "$after_line" ]; then
-        echo -e "${RED}✗ Failed (no output)${NC}\n"
+        echo -e "${RED}✗ Failed (no After: line found)${NC}"
+        echo "Full output:"
+        echo "$output"
+        echo ""
         FAILED=$((FAILED + 1))
         return
     fi
 
     # ソート確認
     sorted_array=($after_line)
+    input_count=$(echo "$input" | wc -w | xargs)
+    output_count=${#sorted_array[@]}
+
+    # 要素数チェック
+    if [ "$input_count" -ne "$output_count" ]; then
+        echo -e "${RED}✗ Failed (element count mismatch: input=$input_count, output=$output_count)${NC}"
+        echo -e "Output: $after_line\n"
+        FAILED=$((FAILED + 1))
+        return
+    fi
+
+    # ソート確認
     if is_sorted "${sorted_array[@]}"; then
         # 比較回数を抽出
         compare_count=$(echo "$output" | grep "std::vector" | grep -o "比較回数: [0-9]*" | grep -o "[0-9]*")
+        if [ -z "$compare_count" ]; then
+            compare_count="N/A"
+        fi
         echo -e "${GREEN}✓ Passed (比較回数: $compare_count)${NC}"
         echo -e "Output: $after_line\n"
         PASSED=$((PASSED + 1))
