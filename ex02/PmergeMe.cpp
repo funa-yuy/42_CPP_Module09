@@ -213,31 +213,18 @@ static void insertLosers(
 	}
 }
 
-void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCount) const
+// ペアリング処理：要素をペアにしてwinner/loserを決定
+static void createPairs(
+	const std::vector<unsigned int>& list,
+	std::vector<std::pair<unsigned int, size_t> >& chainWithIndex,
+	std::vector<unsigned int>& losersByIndex,
+	int& compareCount)
 {
-	// winner の値と、元のインデックスと loser をセットで管理
-	std::vector<std::pair<unsigned int, size_t> > chainWithIndex;  // (winner値, 元index)
-	std::vector<unsigned int> losersByIndex;  // インデックスで loser を管理
-
 	size_t n = list.size();
-	if (n <= 1)
-		return ;
-
-	// 奇数処理
-	unsigned int extra = 0;
-	bool hasExtra = false;
-	if (n % 2 == 1) {
-		extra = list.back();
-		list.pop_back();
-		hasExtra = true;
-		n--;
-	}
-
-	// 全ペアを処理
 	for (size_t i = 0; i + 1 < n; i += 2) {
-		unsigned int a = list[i];
-		unsigned int b = list[i + 1];
-		size_t pairIndex = i / 2;  // ペアのインデックス
+		unsigned int	a = list[i];
+		unsigned int	b = list[i + 1];
+		size_t			pairIndex = i / 2;  // ペアのインデックス
 
 		compareCount++;  // 比較回数カウント
 		if (a < b) {
@@ -248,36 +235,76 @@ void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCoun
 			losersByIndex.push_back(b);
 		}
 	}
+}
 
-	// winner の値だけを取り出して再帰ソート
+// winnerの抽出：chainWithIndexからwinnerの値だけを取り出す
+static std::vector<unsigned int> extractWinners(
+	const std::vector<std::pair<unsigned int, size_t> >& chainWithIndex)
+{
 	std::vector<unsigned int> chain;
 	for (size_t i = 0; i < chainWithIndex.size(); ++i) {
 		chain.push_back(chainWithIndex[i].first);
 	}
+	return (chain);
+}
 
-	mergeInsertSort(chain, compareCount);
-
-	// 再帰後：chain の順序に合わせて losers を再構築
+// losersの再構築：ソート済みchainの順序に合わせてlosersを再構築
+static std::vector<std::pair<unsigned int, unsigned int> > recreateLosers(
+	const std::vector<unsigned int>& chain,
+	std::vector<std::pair<unsigned int, size_t> >& chainWithIndex,
+	const std::vector<unsigned int>& losersByIndex)
+{
 	std::vector<std::pair<unsigned int, unsigned int> > losers;
 	for (size_t i = 0; i < chain.size(); ++i) {
 		unsigned int winner = chain[i];
 
 		for (size_t j = 0; j < chainWithIndex.size(); ++j) {
 			if (chainWithIndex[j].first == winner) {
-				size_t originalIndex = chainWithIndex[j].second;
-				unsigned int loser = losersByIndex[originalIndex];
-				losers.push_back(std::make_pair(winner, loser));
+				size_t			originalIndex = chainWithIndex[j].second;
+				unsigned int	loser = losersByIndex[originalIndex];
 
-				// 同じ値が複数ある場合の対策（使用済みをマーク）
-				chainWithIndex[j].first = UINT_MAX;
+				losers.push_back(std::make_pair(winner, loser));
+				chainWithIndex[j].first = UINT_MAX;// 同じ値が複数ある場合の対策（使用済みをマーク）
 				break ;
 			}
 		}
 	}
-	// 奇数で余ったextraをlosersの最後に追加
+	return (losers);
+}
+
+void PmergeMe::mergeInsertSort(std::vector<unsigned int>& list, int& compareCount) const
+{
+	if (list.size() <= 1)
+		return;
+
+	// 1. 奇数処理
+	unsigned int	extra = 0;
+	bool			hasExtra = false;
+	if (list.size() % 2 == 1) {
+		extra = list.back();
+		list.pop_back();
+		hasExtra = true;
+	}
+
+	// 2. ペアリング
+	std::vector<std::pair<unsigned int, size_t> >	chainWithIndex;
+	std::vector<unsigned int>						losersByIndex;
+	createPairs(list, chainWithIndex, losersByIndex, compareCount);
+
+	// 3. winnerを再帰ソート
+	std::vector<unsigned int>	chain
+		 = extractWinners(chainWithIndex);
+	mergeInsertSort(chain, compareCount);
+
+	// 4. losersを再構築
+	std::vector<std::pair<unsigned int, unsigned int> >	losers
+	 = recreateLosers(chain, chainWithIndex, losersByIndex);
+
+	// 5. extraを追加
 	if (hasExtra)
 		losers.push_back(std::make_pair(UINT_MAX, extra));
 
+	// 6. losersを挿入
 	insertLosers(chain, losers, compareCount);
 
 	list.swap(chain);
@@ -464,4 +491,5 @@ bool	PmergeMe::executeVecter() {
 // 	setTimeus(start, end, _deqTimeus);
 // 	return(true);
 // }
+
 
