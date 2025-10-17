@@ -1,6 +1,5 @@
 #include"RPN.hpp"
 
-//プログラムの実行中にエラーが発生した場合は、エラーメッセージを標準エラーに表示しなければならない。
 int main(int argc, char* argv[])
 {
 	if (argc != 2) {

@@ -38,7 +38,6 @@ BitcoinExchange::~BitcoinExchange() {}
 
 // ↑↑↑ Orthodox Canonical Form --------------------------------------
 
-//左右の空白除去
 static std::string trimIsspace(const std::string& s)
 {
 	std::string::size_type start = 0;
@@ -50,7 +49,6 @@ static std::string trimIsspace(const std::string& s)
 	return (s.substr(start, end - start));
 }
 
-// 日付の簡易検証 (YYYY-MM-DD)
 static bool isValidDate(const std::string& date)
 {
 	if (date.size() != 10)
@@ -63,9 +61,15 @@ static bool isValidDate(const std::string& date)
 		if (!std::isdigit(static_cast<unsigned char>(date[i])))
 			return (false);
 	}
+	int y = std::atoi(date.substr(0, 4).c_str());
 	int m = std::atoi(date.substr(5, 2).c_str());
 	int d = std::atoi(date.substr(8, 2).c_str());
 	if (m < 1 || m > 12)
+		return (false);
+	int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	if (m == 2 && ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)))
+		daysInMonth[1] = 29;
+	if (d < 1 || d > daysInMonth[m - 1])
 		return (false);
 	if (d < 1 || d > 31)
 		return (false);
@@ -88,12 +92,10 @@ static bool parseRate(const std::string& valueStr, double& out)
 	return (true);
 }
 
-// 行を最初のカンマで2分割して date/valueStr を返す
 static void splitFirstComma(const std::string& line, std::string& date, std::string& valueStr)
 {
 	std::string::size_type comma = line.find(',');
-	if (comma == std::string::npos)
-	{
+	if (comma == std::string::npos) {
 		date = line;
 		valueStr.clear();
 		return;
@@ -104,8 +106,7 @@ static void splitFirstComma(const std::string& line, std::string& date, std::str
 
 bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 	std::ifstream ifs(databaseFile);
-	if (!ifs.is_open())
-	{
+	if (!ifs.is_open()) {
 		std::cout << "Error: could not open data file." << std::endl;
 		return (false);
 	}
@@ -114,8 +115,7 @@ bool	BitcoinExchange::loadDatabase(const char* databaseFile) {
 	if (!std::getline(ifs, line))
 		return (false);
 
-	while (std::getline(ifs, line))
-	{
+	while (std::getline(ifs, line)) {
 		line = trimIsspace(line);
 		if (line.empty())
 			continue;
@@ -179,23 +179,19 @@ static bool isValidDateRange(const std::map<std::string, double>& db, const std:
 }
 
 bool	BitcoinExchange::validInputLine(const std::string& line, std::string& outDate, double& outValue) {
-	if (!isValidSyntax(line, outDate, outValue))
-	{
+	if (!isValidSyntax(line, outDate, outValue)) {
 		std::cout << "Error: bad input => " <<  line << std::endl;
 		return(false);
 	}
-	if (!isValidDateRange(_database, outDate))
-	{
+	if (!isValidDateRange(_database, outDate)) {
 		std::cout << "Error: Date is out of database range." << std::endl;
 		return(false);
 	}
-	if (outValue < 0.0)
-	{
+	if (outValue < 0.0) {
 		std::cout << "Error: not a positive number." << std::endl;
 		return(false);
 	}
-	if (outValue > INT_MAX)
-	{
+	if (outValue > INT_MAX) {
 		std::cout << "Error: too large a number." << std::endl;
 		return(false);
 	}
@@ -218,18 +214,16 @@ double BitcoinExchange::getExchangeRate(const std::string& date, double value) c
 
 bool	BitcoinExchange::execute(char* input) {
 	std::ifstream ifs(input);
-	if (!ifs.is_open())
-	 {
+	if (!ifs.is_open()) {
 		std::cout << "Error: could not open file." << std::endl;
 		return (false);
-	 }
+	}
 
 	std::string line;
 	if (!std::getline(ifs, line))
 		return (false);
 
-	while (std::getline(ifs, line))
-	{
+	while (std::getline(ifs, line)) {
 		std::string str = trimIsspace(line);
 		if (str.empty())
 			continue ;
