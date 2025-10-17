@@ -7,15 +7,22 @@ bool	RPN::execute(const char*	data) {
 	std::string str(data);
 
 	for (size_t i = 0; i < str.size(); ++i) {
-		if (str[i] == ' ')
-			continue;
+		while (i < str.size() && str[i] == ' ')
+			++i;
+		if (i >= str.size())
+			break;
 
 		char target = str[i];
+		++i;
+		if (i < str.size() && str[i] != ' ') {
+			std::cerr << "Error: 不正な引数です。" << std::endl;
+			return (false);
+		}
+
 		if (target >= '0' && target <= '9') {
 			st.push(target - '0');
 			continue ;
 		}
-
 		if (target == '+' || target == '-' || target == '/' || target == '*') {
 			if (st.size() < 2) {
 				std::cerr << "Error: 演算に必要な数値が足りません。" << std::endl;
