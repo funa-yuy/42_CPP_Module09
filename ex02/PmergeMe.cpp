@@ -521,6 +521,6 @@ bool	PmergeMe::executeDeque() {
 	_deqList = tokens;
 	gettimeofday(&end, NULL);
 
-	setTimeus(start, end, _vecTimeus);
+	setTimeus(start, end, _deqTimeus);
 	return(true);
 }
