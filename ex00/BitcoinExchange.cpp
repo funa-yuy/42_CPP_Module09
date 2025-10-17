@@ -191,7 +191,7 @@ bool	BitcoinExchange::validInputLine(const std::string& line, std::string& outDa
 		std::cout << "Error: not a positive number." << std::endl;
 		return(false);
 	}
-	if (outValue > INT_MAX) {
+	if (outValue > 1000) {
 		std::cout << "Error: too large a number." << std::endl;
 		return(false);
 	}
