@@ -35,6 +35,7 @@
 *.pdf
 **/.DS_Store
 .vscode/
+mfunakos/
 ex00/data.csv
 ex00/input.txt
 ex00/btc
